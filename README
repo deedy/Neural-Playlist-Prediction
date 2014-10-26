@@ -1,0 +1,31 @@
+Notes:
+
+Spectrogram -
+
+
+Confusing things/ Open questions
+1. Use pylab or mlab specgram? Pylab plots with axes and mlab doesn't
+2. Pydub data, decode in int32, or int16? Int16 seems to have a reflected version with strange missing frequencies. Int32 resembles audacity
+3. Log frequency?
+4. Why does splitting channels seem to lose data? How do we split channels?
+5. Will Drevo - http://willdrevo.com/fingerprinting-and-audio-recognition-with-python/ [ decodes int16, and doesnt label or correctly mark axes]
+
+
+Specgram variables -
+Fs - Use sample frequency - 44100
+NFFT - The window width when doing FFT - typically 4096 works well
+noverlap - The overlap between window widths - typically 0.5*NFFT
+window - The filter applied on the window. Typically hanning? ref: wikipedia
+
+
+Things to do -
+1. Save spectrogram data to a separate folder
+2. Save spectrogram plots (if they don't exist)
+3. Maybe in the future use window size in seconds and then round to the nearest power of 2 (python prefers window sizes in powers of 2)
+4. Maybe in the future also add a 3D visualization
+
+Fun things learnt -
+1. MP3 file format - ID3 tag header, MP3 frames <MP3 header, data>
+2. Spectrograms
+3. Fast Fourier Transformsxw
+4. Nyquist sampling - if an audio signal is recorded at sampling rate f, the maximum possible frequency detectible is f/2
