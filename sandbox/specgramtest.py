@@ -1,5 +1,6 @@
 from pylab import *
 from mpl_toolkits.mplot3d import Axes3D
+from IPython.core.debugger import Tracer
 
 dt = 0.001
 t = arange(0.0, 10.0*pi, dt)
@@ -31,6 +32,7 @@ plot(t, x)
 subplot(212, sharex=ax1)
 Pxx, freqs, bins, im = specgram(x, NFFT=NFFT, Fs=Fs, noverlap=0,
                                 cmap=cm.gist_heat)
+Tracer()()
 from mpl_toolkits.mplot3d import Axes3D
 fig = plt.figure()
 ax = fig.gca(projection='3d')

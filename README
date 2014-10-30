@@ -9,9 +9,10 @@ Spectrogram -
 Confusing things/ Open questions
 1. Use pylab or mlab specgram? Pylab plots with axes and mlab doesn't
 2. Pydub data, decode in int32, or int16? Int16 seems to have a reflected version with strange missing frequencies. Int32 resembles audacity
-3. Log frequency?
 4. Why does splitting channels seem to lose data? How do we split channels?
 5. Will Drevo - http://willdrevo.com/fingerprinting-and-audio-recognition-with-python/ [ decodes int16, and doesnt label or correctly mark axes]
+6. What frequency bins do we use for the Hz spectrogram? What about the mel-scaled spectrogram?
+
 
 
 Specgram variables -
@@ -22,13 +23,52 @@ window - The filter applied on the window. Typically hanning? ref: wikipedia
 
 
 Things to do -
-1. Save spectrogram data to a separate folder
-2. Save spectrogram plots (if they don't exist)
-3. Maybe in the future use window size in seconds and then round to the nearest power of 2 (python prefers window sizes in powers of 2)
-4. Maybe in the future also add a 3D visualization
+1. Add script option to reprocess
+2. Add one global SAVE_DIR
+3. modularize
+4. Idea - maybe use spectral envelope comparison like simple mean square error curve comparison to cut and patch songs like infinite jukebox?!
+7. Maybe in the future use window size in seconds and then round to the nearest power of 2 (python prefers window sizes in powers of 2)
+
+Accomplishments/Goals -
+1. Detecting and fingerprinting Audio (like Shazam)
+2. Recognizing Genre
+3. Figuring out an audio signal similarity metric
+4. Spectral envelope similarity to cut and patch songs (like Infinite Jukebox)
+5. Speech recognition (!?!?)
 
 Fun things learnt -
 1. MP3 file format - ID3 tag header, MP3 frames <MP3 header, data>
 2. Spectrograms
-3. Fast Fourier Transformsxw
+3. Fast Fourier Transforms
 4. Nyquist sampling - if an audio signal is recorded at sampling rate f, the maximum possible frequency detectible is f/2
+5. Mel-Frequency Cepstrum Coefficients - Direct Cosine Transform as an approximation for a Karhunen-loeve (KL) transform or a PCA (Principal Component Analysis)
+6. Cepstrums
+7. Mel-filterbanks and conversion of spectrograms to mel-spectrograms
+8. Spectral Envelopes
+9. Python PIL matrix to image
+10. FFmpeg for sample rate normalization
+11. Different constraints on test data - 30 computers running for a month could do about 2.5 million songs, and that's over 12,000 GB of data. Spotify contains around 20 million songs.
+12. Geoff Hinton's work on Speech Recognition -
+battle between Gaussian Mixture Models and Hidden Markov Models vs
+Deep Neural Networks
+13. Genre classification - MFCCs, other features, such as beat onset, etc,etc. Tzetekanis is the guru. Typical dataset is GTZAN. Highest accuracy is 92.6% using Sparse Representation Based Classifier and Compressive Sampling (SRC, CS). - http://ismir2010.ismir.net/proceedings/ismir2010-66.pdf
+14. Unsupervised learning using SVMs worked okay with 83% - http://yann.lecun.com/exdb/publis/pdf/henaff-ismir-11.pdf
+15. The seminal paper is http://ismir2001.ismir.net/pdf/tzanetakis.pdf
+16. Compressive Sampling is a technique that Emmanual Candes came up with, also responsible for the Dantzig selector with Terence Tao.
+
+Data  -
+Rock - http://thepiratebay.se/torrent/11014534/top_100_rock_tracks_on_spotify_september_2014
+Metal - http://thepiratebay.se/torrent/4949075/METAL_TOP_1000_PART_1-100
+Korean - http://thepiratebay.se/torrent/7448009/KPOP__amp__STUFF_Vol._1_-_That_s_K-Pop_-_Korean_Music_For_All_Ta
+
+Club - http://thepiratebay.se/torrent/8695670/Top_100_Summer_Club_Hits_2013_320KB_(Spookkie)_TBS
+Country - http://thepiratebay.se/torrent/9357587/Billboard_Top_100_Year_End_Country_Songs_-_2013
+Classical - http://thepiratebay.se/torrent/3914124/Classical_Music_Top_100
+
+
+Information  -
+t-distribution Stochastic Neighbor Embedding - Hinton/Maartens - http://homepage.tudelft.nl/19j49/t-SNE.html
+MFCC details and implementation - http://practicalcryptography.com/miscellaneous/machine-learning/guide-mel-frequency-cepstral-coefficients-mfccs/#computing-the-mel-filterbank
+Convnets in Theano - http://deeplearning.net/tutorial/lenet.html
+Geoff Hinton's work on Speech Recognition - http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/38131.pdf
+Genre classification - http://ismir2001.ismir.net/pdf/tzanetakis.pdf
