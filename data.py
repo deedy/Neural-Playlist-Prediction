@@ -9,7 +9,7 @@ NUM_BATCHES = 15
 NUM_SONGS_PER_GENRE = 90
 SONG_NUM_OFFSET = 10
 
-def make_batches(in_path, out_path, NUM_NODES, node=None):
+def make_batches(in_path, out_path, NUM_NODES, node):
 	"""
 	Make data_batch_* files for cuda-convnet from
 	the GTZAN genre data set
@@ -29,13 +29,11 @@ def make_batches(in_path, out_path, NUM_NODES, node=None):
 
 	batch_size = NUM_SONGS_PER_GENRE/NUM_BATCHES*len(genres)
 	
-	# make batches.meta
-	meta = {'num_vis' : NUM_FEATURES, 'data_mean' : np.zeros((NUM_FEATURES,1)), 'num_cases_per_batch' : NUM_SONGS_PER_GENRE/NUM_BATCHES*len(genres), 'label_names' : genres}
-	pickle.dump(meta, open(os.path.join(out_path, 'batches.meta'), 'wb'))
-	print "Made batches.meta"	
-
-	if node is None and NUM_NODES > 1:
-		return
+	if node == 0:
+		# make batches.meta
+		meta = {'num_vis' : NUM_FEATURES, 'data_mean' : np.zeros((NUM_FEATURES,1)), 'num_cases_per_batch' : NUM_SONGS_PER_GENRE/NUM_BATCHES*len(genres), 'label_names' : genres}
+		pickle.dump(meta, open(os.path.join(out_path, 'batches.meta'), 'wb'))
+		print "Made batches.meta"	
 
 	bx = NUM_BATCHES/NUM_NODES*node
 	by = bx + NUM_BATCHES/NUM_NODES
@@ -60,8 +58,8 @@ def make_batches(in_path, out_path, NUM_NODES, node=None):
 def main():
 	in_path = sys.argv[1]
 	out_path = sys.argv[2]
-	num_nodes = sys.argv[3].split('--num-nodes=')[1]
-	node = sys.argv[4].split('--node=')[1] if len(sys.argv) >= 5 else None
+	num_nodes = int(sys.argv[3].split('--num-nodes=')[1])
+	node = int(sys.argv[4].split('--node=')[1])
 	make_batches(in_path, out_path, num_nodes, node)
 
 if __name__ == '__main__':
