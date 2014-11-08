@@ -2,6 +2,10 @@ import matplotlib.mlab as mlab # Spectrograms
 from PIL import Image # Matrix to images
 from mpl_toolkits.mplot3d import Axes3D
 from scipy.fftpack.realtransforms import dct #MFCC computation
+
+import matplotlib
+matplotlib.use('Agg') # for ec2 instance
+
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
@@ -178,7 +182,7 @@ class AudioBite():
 
   def plot_mfcc(self):
     self._mfcc_plot_helper()
-    plt.show()
+    #plt.show()
     plt.close()
 
   def save_mfcc(self, format = '.png'):
