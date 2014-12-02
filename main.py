@@ -7,21 +7,10 @@ import glob
 
 from IPython.core.debugger import Tracer
 
-SAVE_DIR = 'processed'
+SAVE_DIR = 'data'
 PARSE_METHODS = {'.mp3': parse_mp3, '.au': parse_gtzan}
 
-if __name__ == '__main__':
-  usage = "usage: %prog [options] arg"
-  parser = OptionParser(usage)
-  (options, args) = parser.parse_args()
-
-  if len(args) == 0:
-    raise Exception('No arguments supplied. Failing.')
-    sys.exit
-  if len(args) > 1:
-    print('Only accepts one argument at this moment. Using first argument {0}'.format(args[0]))
-  path = args[0]
-
+def run(path):
   to_process = []
   if os.path.isfile(path):
     fp, ext = os.path.splitext(path)
@@ -58,8 +47,15 @@ if __name__ == '__main__':
     processed_audio.save_mfcc()
     processed_audio.save()
 
+if __name__ == '__main__':
+  usage = "usage: %prog [options] arg"
+  parser = OptionParser(usage)
+  (options, args) = parser.parse_args()
 
-
-
-
-
+  if len(args) == 0:
+    raise Exception('No arguments supplied. Failing.')
+    sys.exit
+  if len(args) > 1:
+    print('Only accepts one argument at this moment. Using first argument {0}'.format(args[0]))
+  path = args[0]
+  main(path)
