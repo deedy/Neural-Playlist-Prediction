@@ -44,9 +44,9 @@ def munge_gtzan(path, redo=False):
     path/genres/name_of_genre/name_of_song.pik
 
     :param bool redo: 
-    :rtype tuple(list[set(str)],dict[str]=AudioBite)
+    :rtype tuple(list[set(str)],dict[str]=AudioFeatureSet)
     :return A list of playsets containing song IDs, and a dictionary
-    that maps song IDs to AudioBite objects
+    that maps song IDs to AudioFeatureSet objects
     """
     
     if redo or not os.path.exists(GTZAN_MUNGED_FILE):
@@ -79,9 +79,9 @@ def munge_playsets(path_to_playsets, path_to_ab):
     Should be a directory containing pickled objects with
     type AudioBite and filename=songID.pik
 
-    :rtype tuple(list[set(str)],dict[str]=AudioBite)
+    :rtype tuple(list[set(str)],dict[str]=AudioFeatureSet)
     :return A list of playsets containing song IDs, and a dictionary
-    that maps song IDs to AudioBite objects
+    that maps song IDs to AudioFeatureSet objects
     """
     raise NotImplementedError
 

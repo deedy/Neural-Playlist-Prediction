@@ -6,6 +6,7 @@ Module for playset model evaluation
 
 from models import *
 from datatools import munge_gtzan
+from synth import generate_synthetic_playsets
 from random import shuffle, sample
 
 import pylab as plt
@@ -22,9 +23,9 @@ def split_playsets(data, T=0.5):
 
     The test set will not contain any songs from the training set
 
-    :param tuple(list[set(str)],dict[str]=AudioBite) data: 
+    :param tuple(list[set(str)],dict[str]=AudioFeatureSet) data: 
     A list of playsets containing song IDs, and a dictionary
-    that maps song IDs to AudioBite objects
+    that maps song IDs to AudioFeatureSet objects
     :param int T: Fraction of instances in training set
     (1 - fraction of instances in test set)
     :rtype tuple(train,test)
@@ -61,9 +62,11 @@ def song_pairs_mse(model, data):
         pred.append(math.exp(model.log_likelihood(x, y)))
         act.append(p)
 
+    # BEGIN DEBUG
     #plt.scatter(pred, act)
-    plt.hist(pred)
-    plt.show()
+    #plt.hist(pred)
+    #plt.show()
+    # END DEBUG
 
     mse = np.linalg.norm(np.asarray(pred) - np.asarray(act))
 
@@ -74,9 +77,9 @@ def playsets_avg_ll(model, data):
     Compute average log-likelihood of playsets
 
     :param PlaysetModel model: A trained playset model
-    :param tuple(list[set(str)],dict[str]=AudioBite) data: 
+    :param tuple(list[set(str)],dict[str]=AudioFeatureSet) data: 
     A list of playsets containing song IDs, and a dictionary
-    that maps song IDs to AudioBite objects
+    that maps song IDs to AudioFeatureSet objects
     :rtype float
     :return Average log-likelihood
     """
@@ -93,9 +96,9 @@ def evaluate_models(data, K=3):
     Compute cross-validated mean-squared error
     of held out song pairs using models.SongPairModel
 
-    :param tuple(list[set(str)],dict[str]=AudioBite) data: 
+    :param tuple(list[set(str)],dict[str]=AudioFeatureSet) data: 
     A list of playsets containing song IDs, and a dictionary
-    that maps song IDs to AudioBite objects
+    that maps song IDs to AudioFeatureSet objects
     :param int K: K-fold cross-validation
     :rtype tuple(tuple(float,float),tuple(float,float))
     :return Average log-likelihood and mean-squared error
@@ -123,13 +126,16 @@ def evaluate_models(data, K=3):
     return ((avg_ll/K), (bench_avg_ll/K), (mse/K), (bench_mse/K))
 
 def main():
-    data_path = sys.argv[1]
-    data = munge_gtzan(data_path)
+    #data_path = sys.argv[1]
+    #data = munge_gtzan(data_path)
+    data = generate_synthetic_playsets()
 
     # BEGIN DEBUG
+    """
     cp = [x[2] for x in get_song_pairs(data)]
     plt.hist(cp)
     plt.show()
+    """
     # END DEBUG
 
     avg_ll, bench_avg_ll, mse, bench_mse = evaluate_models(data)

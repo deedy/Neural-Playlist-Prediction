@@ -6,6 +6,7 @@ regression model
 """
 
 from __future__ import division
+from AudioBite import AudioBite
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from math import log
@@ -21,44 +22,17 @@ class AudioFeatureSet(object):
     standardized audio feature sets
     """
 
-    def __init__(self, ab):
+    def __init__(self, x):
         """
         Initialize audio feature set object
 
-        :param AudioBite ab: An AudioBite object
+        :param AudioBite|np.ndarray x: 
         """
     
-        self.vec = ab.mel_specgram.flatten()
+        self.vec = x.mel_specgram.flatten() if isinstance(x, AudioBite) else x
 
     def get(self):
         return self.vec
-
-class BenchmarkSongPairModel(object):
-    """
-    Class for regression model that maps two audio feature
-    sets to a probability of co-occurrence in a playset
-
-    Predicts a random number for log likelihood of co-occurrence
-    """
-
-    def __init__(self):
-        pass
-
-    def train(self, data):
-        pass
-
-    def log_likelihood(self, x, y):
-        """
-        Compute log likelihood of co-occurrence Pr(X|Y)
-
-        :param AudioFeatureSet x: An audio feature set of a song
-        :param AudioFeatureSet y: An audio feature set of a song
-        :rtype float
-        :return A real value between 0 and 1
-        """
-
-        r = random()
-        return log(r)
 
 class SongPairModel(object):
     """
@@ -82,7 +56,8 @@ class SongPairModel(object):
         :return Feature set of x :: feature set of y
         """
 
-        return np.concatenate((x.get(), y.get()))
+        #return np.concatenate((x.get(), y.get()))
+        return (x.get()-y.get())**2 # DEBUG
 
     def train(self, data):
         """
@@ -113,7 +88,62 @@ class SongPairModel(object):
         """
 
         f = self.join_feature_sets(x, y)
-        return self.model.predict_log_proba(f)[0,1]
+        return self.model.predict_log_proba(f)[0,0]
+
+class BenchmarkSongPairModel(object):
+    def __init__(self):
+        pass
+
+    def train(self, data):
+        pass
+
+    def log_likelihood(self, x, y):
+        r = random()
+        return log(r)
+
+class PlaysetModel(object):
+    """
+    Class for generative model of playsets
+    """
+
+    def __init__(self, benchmark=False):
+        self.song_pair_model = None
+        self.benchmark = benchmark 
+
+    def train(self, data):
+        """
+        Estimate generative model using a training data set
+
+        :param tuple(list[set(str)],dict[str]=AudioFeatureSet) data: 
+        A list of playsets containing song IDs, and a dictionary
+        that maps song IDs to AudioFeatureSet objects
+        """
+
+        pairs = get_song_pairs(data)
+
+        self.song_pair_model = BenchmarkSongPairModel() if self.benchmark else SongPairModel()
+        self.song_pair_model.train(pairs)
+
+    def avg_log_likelihood(self, x):
+        """
+        Compute the average log-likelihood of observing a playset
+        under the current model
+
+        :param tuple(set(str),dict[str]=AudioFeatureSet) x:
+        A playset containing song IDs, and a dictionary
+        that maps song IDs to AudioFeatureSet objects 
+        :rtype float
+        :return Log-likelihood of playset
+        """
+
+        ps, afshash = x
+        ps = list(ps)
+        avg_ll = sum(
+            self.song_pair_model.log_likelihood(
+                afshash[a], afshash[b]) for i, a in enumerate(
+                ps) for b in ps[(i+1):]) / (len(ps)*(len(ps)-1)/2)
+
+        return avg_ll
 
 def get_song_pairs(data):
     """
@@ -139,52 +169,7 @@ def get_song_pairs(data):
                 CP[(x,y)] += 1
 
     num_songs = len(songs)
-
-    # Laplace smoothing
-    CP = {k:((v)/(P[k[1]])) for k, v in CP.iteritems()}
+    CP = {k:(v/P[k[1]]) for k, v in CP.iteritems()}
 
     return [(afshash[x],afshash[y],CP[(x,y)]) for x in songs for y in songs if x!=y]
 
-class PlaysetModel(object):
-    """
-    Class for generative model of playsets
-    """
-
-    def __init__(self, benchmark=False):
-        self.song_pair_model = None
-        self.benchmark = benchmark 
-
-    def train(self, data):
-        """
-        Estimate generative model using a training data set
-
-        :param tuple(list[set(str)],dict[str]=AudioBite) data: 
-        A list of playsets containing song IDs, and a dictionary
-        that maps song IDs to AudioBite objects
-        """
-
-        pairs = get_song_pairs(data)
-
-        self.song_pair_model = BenchmarkSongPairModel() if self.benchmark else SongPairModel()
-        self.song_pair_model.train(pairs)
-
-    def avg_log_likelihood(self, x):
-        """
-        Compute the average log-likelihood of observing a playset
-        under the current model
-
-        :param tuple(set(str),dict[str]=AudioBite) x:
-        A playset containing song IDs, and a dictionary
-        that maps song IDs to AudioBite objects 
-        :rtype float
-        :return Log-likelihood of playset
-        """
-
-        ps, afshash = x
-        ps = list(ps)
-        avg_ll = sum(
-            self.song_pair_model.log_likelihood(
-                afshash[a], afshash[b]) for i, a in enumerate(
-                ps) for b in ps[(i+1):]) / (len(ps)*(len(ps)-1)/2)
-
-        return avg_ll
