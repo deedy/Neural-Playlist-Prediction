@@ -20,10 +20,13 @@ def generate_synthetic_playsets(
     num_songs=100,
     num_features=20):
     """
-    Generate random playsets 
-
     Generate random audio feature sets for songs
     using a multivariate Gaussian 
+
+    Generate random playsets by choosing seed songs,
+    then iteratively adding songs with probability
+    proportional to Euclidean distance from the working
+    center of the playset
 
     :param int num_playsets: Number of playsets
     :param int num_songs_per_playset: Playset length
