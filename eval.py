@@ -4,29 +4,21 @@ Module for playset model evaluation
 12/2/14
 """
 
-from models import PlaysetModel, SongPairModel, get_song_pairs
-from random import shuffle
+from models import *
+from datatools import munge_gtzan
+from random import shuffle, sample
+
+import pylab as plt
 
 import sys
-
-def traintestsplit(data, T):
-    """
-    Split data into training and test sets
-
-    :param int T: Fraction of instances in training set
-    (1 - fraction of instances in test set)
-    :rtype tuple(train,test)
-    :return A tuple of training and test data sets
-    """
-
-    s = int(T*len(playsets))
-    train = playsets[:s]
-    test = playsets[s:]
-    return (train, test)
+import math
 
 def split_playsets(data, T=0.5):
     """
     Split playsets into training and test sets
+
+    Each playset gets split in T (as opposed to splitting the 
+    list of playsets in T and keeping individual playsets together)
 
     The test set will not contain any songs from the training set
 
@@ -40,32 +32,18 @@ def split_playsets(data, T=0.5):
     """
 
     playsets, afshash = data
-    shuffle(playsets)
-    train, test = traintestsplit(T)
-    songs = lambda t: {s for s in ps for ps in t}
+    def split(x):
+        shuffle(x)
+        s = int(T*len(x))
+        return (x[:s],x[s:])
+    pre = [split(list(ps)) for ps in playsets]
+    train = [x[0] for x in pre]
+    test = [x[1] for x in pre]
+    songs = lambda t: {s for ps in t for s in ps}
     pare = lambda t, h: {k:v for k, v in h.iteritems() if k in songs(t)}
     return ((train, pare(train, afshash)), (test, pare(test, afshash)))
-    
-def split_song_pairs(data, T=0.5):
-    """
-    Split song pairs into training and test sets
 
-    The test set will not contain any songs from the training set
-
-    :param tuple(list[set(str)],dict[str]=AudioBite) data: 
-    A list of playsets containing song IDs, and a dictionary
-    that maps song IDs to AudioBite objects
-    :param int T: Fraction of instances in training set
-    (1 - fraction of instances in test set)
-    :rtype tuple(train,test)
-    :return A tuple of training and test data sets
-    """
-
-    shuffle(data)
-    train, test = traintestsplit(T)
-    return (train, test)
-
-def song_pair_mse(model, data):
+def song_pairs_mse(model, data):
     """
     Compute mean-squared error of predicted conditional probabilities
     of song co-occurrence
@@ -77,13 +55,21 @@ def song_pair_mse(model, data):
     :return Mean-squared error
     """
 
-    mse = 0
+    pred, act = [], []
     for d in data:
         x, y, p = d
-        mse += (model.log_likelihood(x, y) - p) ** 2
-    return mse / len(data)
+        pred.append(math.exp(model.log_likelihood(x, y)))
+        act.append(p)
 
-def playset_avg_ll(model, data):
+    #plt.scatter(pred, act)
+    plt.hist(pred)
+    plt.show()
+
+    mse = np.linalg.norm(np.asarray(pred) - np.asarray(act))
+
+    return mse
+
+def playsets_avg_ll(model, data):
     """
     Compute average log-likelihood of playsets
 
@@ -99,30 +85,11 @@ def playset_avg_ll(model, data):
     avg_ll = sum(model.avg_log_likelihood((ps, afshash)) for ps in playsets) / len(playsets)
     return avg_ll
 
-def evaluate_playset_model(data, K=3):
+def evaluate_models(data, K=3):
     """
     Compute cross-validated average log-likelihood
     of held out playsets using models.PlaysetModel
 
-    :param tuple(list[set(str)],dict[str]=AudioBite) data: 
-    A list of playsets containing song IDs, and a dictionary
-    that maps song IDs to AudioBite objects
-    :param int K: K-fold cross-validation
-    :rtype float
-    :return Average log-likelihood
-    """
-    
-    model = PlaysetModel()
-    cv_avg_ll = 0
-    for _ in xrange(K):
-        train, test = split_playsets(data)
-        model.train(train)
-        cv_avg_ll += playset_avg_ll(model, test)
-
-    return cv_avg_ll / K
-
-def evaluate_song_pair_model(data, K=3):
-    """
     Compute cross-validated mean-squared error
     of held out song pairs using models.SongPairModel
 
@@ -130,27 +97,46 @@ def evaluate_song_pair_model(data, K=3):
     A list of playsets containing song IDs, and a dictionary
     that maps song IDs to AudioBite objects
     :param int K: K-fold cross-validation
-    :rtype float
-    :return Mean-squared error
+    :rtype tuple(tuple(float,float),tuple(float,float))
+    :return Average log-likelihood and mean-squared error
+    of model vs. benchmark
     """
     
-    song_pairs = get_song_pairs(data)
-
     model = PlaysetModel()
-    cv_mse = 0
+    bench_model = PlaysetModel(benchmark=True)
+    bench_song_pair_model = BenchmarkSongPairModel()
+    avg_ll = 0
+    bench_avg_ll = 0
+    mse = 0
+    bench_mse = 0
     for _ in xrange(K):
-        train, test = split_song_pairs(song_pairs)
+        train, test = split_playsets(data)
         model.train(train)
-        cv_mse += song_pair_mse(model, test)
+        bench_model.train(train)
+        avg_ll += playsets_avg_ll(model, test)
+        bench_avg_ll += playsets_avg_ll(bench_model, test)
 
-    return cv_mse / K
+        test_song_pairs = get_song_pairs(test)
+        mse += song_pairs_mse(model.song_pair_model, test_song_pairs)
+        bench_mse += song_pairs_mse(bench_song_pair_model, test_song_pairs)
+
+    return ((avg_ll/K), (bench_avg_ll/K), (mse/K), (bench_mse/K))
 
 def main():
     data_path = sys.argv[1]
-    data = datatools.munge_gtzan(data_path)
-    cv_avg_ll, cv_mse = evaluate(data)
+    data = munge_gtzan(data_path)
 
-    print "Average log-likelihood: %f\nMean-squared error %f" % (cv_avg_ll, cv_mse)
+    # BEGIN DEBUG
+    cp = [x[2] for x in get_song_pairs(data)]
+    plt.hist(cp)
+    plt.show()
+    # END DEBUG
+
+    avg_ll, bench_avg_ll, mse, bench_mse = evaluate_models(data)
+
+    print "Playset Model\n-------------\nAverage log-likelihood: %f\nMean-squared error %f" % (avg_ll, mse)
+    print ""
+    print "Benchmark Model\n-------------\nAverage log-likelihood: %f\nMean-squared error %f" % (bench_avg_ll, bench_mse)
 
 if __name__ == '__main__':
     main()

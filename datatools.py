@@ -11,6 +11,7 @@ import cPickle as pickle
 import os
 
 DATA_DIR = 'data'
+GTZAN_MUNGED_FILE = 'data/gtzan_munged.pkl'
 
 def preproc(path):
     """
@@ -31,7 +32,7 @@ def preproc(path):
 def song_name_from_file(f):
     return f.split('.pik')[0]
 
-def munge_gtzan(path):
+def munge_gtzan(path, redo=False):
     """
     Parse preprocessed GTZAN files to model-ready data set
 
@@ -42,23 +43,28 @@ def munge_gtzan(path):
     path/genres/name_of_genre
     path/genres/name_of_genre/name_of_song.pik
 
+    :param bool redo: 
     :rtype tuple(list[set(str)],dict[str]=AudioBite)
     :return A list of playsets containing song IDs, and a dictionary
     that maps song IDs to AudioBite objects
     """
     
-    playsets = []
-    afshash = {}
-    playset_dirs = os.listdir(os.path.join(path, 'genres'))
-    for playset_dir in playset_dirs:
-        songs = [f for f in os.listdir(os.path.join(path, 'genres', playset_dir)) if f[-4:]=='.pik']
-        playsets.append({song_name_from_file(f) for f in songs})
-        for f in songs:
-            snf = song_name_from_file(f)
-            if snf not in afshash:
-                afshash[snf] = AudioFeatureSet(pickle.load(open(os.path.join(path, 'genres', playset_dir, f), 'rb')))
+    if redo or not os.path.exists(GTZAN_MUNGED_FILE):
+        playsets = []
+        afshash = {}
+        playset_dirs = os.listdir(os.path.join(path, 'genres'))
+        for playset_dir in playset_dirs:
+            songs = [f for f in os.listdir(os.path.join(path, 'genres', playset_dir)) if f[-4:]=='.pik']
+            playsets.append({song_name_from_file(f) for f in songs})
+            for f in songs:
+                snf = song_name_from_file(f)
+                if snf not in afshash:
+                    afshash[snf] = AudioFeatureSet(pickle.load(open(os.path.join(path, 'genres', playset_dir, f), 'rb')))
 
-    return (playsets, afshash)
+        pickle.dump((playsets, afshash), open(GTZAN_MUNGED_FILE, 'wb'))
+        return (playsets, afshash)
+    else:
+        return pickle.load(open(GTZAN_MUNGED_FILE, 'rb'))
 
 def munge_playsets(path_to_playsets, path_to_ab):
     """
