@@ -7,8 +7,11 @@ regression model
 
 from __future__ import division
 from AudioBite import AudioBite
-from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
+#from nn import MLP
+from sklearn.svm import SVC, SVR
+from sklearn.neighbors import KNeighborsRegressor
+#from sklearn.linear_model import LogisticRegression
+from reg import LogisticRegression
 from math import log
 from random import random
 
@@ -29,7 +32,12 @@ class AudioFeatureSet(object):
         :param AudioBite|np.ndarray x: 
         """
     
-        self.vec = x.mel_specgram.flatten() if isinstance(x, AudioBite) else x
+        if isinstance(x, AudioBite):
+            self.vec = x.mel_specgram#.flatten() # DEBUG
+        elif isinstance(x, np.ndarray):
+            self.vec = x
+        else:
+            raise Exception("Type error!")
 
     def get(self):
         return self.vec
@@ -57,7 +65,7 @@ class SongPairModel(object):
         """
 
         #return np.concatenate((x.get(), y.get()))
-        return (x.get()-y.get())**2 # DEBUG
+        return (x.get()-y.get())**2
 
     def train(self, data):
         """
@@ -72,8 +80,11 @@ class SongPairModel(object):
 
         print "Training model on data set with %d instances and %d features..." % (len(X), len(X[0]))
         start_time = time.time()
+        #self.model = KNeighborsRegressor(n_neighbors=3)
         self.model = LogisticRegression()
+        #self.model = SVR(kernel='rbf', C=1.0)
         #self.model = SVC(kernel='rbf', C=1.0, probability=True)
+        #self.model = MLP()
         self.model.fit(X, Y)
         print "Done in %f seconds." % (time.time() - start_time)
 
@@ -88,7 +99,8 @@ class SongPairModel(object):
         """
 
         f = self.join_feature_sets(x, y)
-        return self.model.predict_log_proba(f)[0,0]
+        return self.model.predict_log_proba(f)
+        #return self.model.predict(f)
 
 class BenchmarkSongPairModel(object):
     def __init__(self):
@@ -171,5 +183,4 @@ def get_song_pairs(data):
     num_songs = len(songs)
     CP = {k:(v/P[k[1]]) for k, v in CP.iteritems()}
 
-    return [(afshash[x],afshash[y],CP[(x,y)]) for x in songs for y in songs if x!=y]
-
+    return [(afshash[x],afshash[y],CP[(x,y)]) for x in songs for y in songs if x!=y and CP[(x,y)]>0]

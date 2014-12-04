@@ -64,11 +64,12 @@ def song_pairs_mse(model, data):
 
     # BEGIN DEBUG
     #plt.scatter(pred, act)
-    #plt.hist(pred)
-    #plt.show()
+    plt.hist(pred, color='red')
+    plt.hist(act, color='blue')
+    plt.show()
     # END DEBUG
 
-    mse = np.linalg.norm(np.asarray(pred) - np.asarray(act))
+    mse = np.linalg.norm(np.asarray(pred) - np.asarray(act)) / len(pred)
 
     return mse
 
