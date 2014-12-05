@@ -63,10 +63,13 @@ def song_pairs_mse(model, data):
         act.append(p)
 
     # BEGIN DEBUG
-    #plt.scatter(pred, act)
-    plt.hist(pred, color='red')
-    plt.hist(act, color='blue')
+    """
+    plt.scatter(pred, act)
     plt.show()
+    plt.hist(act, color='blue')
+    plt.hist(pred, color='red')
+    plt.show()
+    """
     # END DEBUG
 
     mse = np.linalg.norm(np.asarray(pred) - np.asarray(act)) / len(pred)
@@ -127,9 +130,11 @@ def evaluate_models(data, K=3):
     return ((avg_ll/K), (bench_avg_ll/K), (mse/K), (bench_mse/K))
 
 def main():
-    #data_path = sys.argv[1]
-    #data = munge_gtzan(data_path)
-    data = generate_synthetic_playsets()
+    data_path = sys.argv[1]
+    print "Munging GTZAN..."
+    data = munge_gtzan(data_path)
+    print "Done."
+    #data = generate_synthetic_playsets()
 
     # BEGIN DEBUG
     """

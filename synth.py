@@ -16,10 +16,10 @@ def random_song_name():
     return str(uuid.uuid4())
 
 def generate_synthetic_playsets(
-    num_playsets=50, 
-    num_songs_per_playset=10, 
+    num_playsets=100, 
+    num_songs_per_playset=25, 
     num_songs=100,
-    num_features=20):
+    num_features=50):
     """
     Generate random audio feature sets for songs
     (sample from uniform distribution)

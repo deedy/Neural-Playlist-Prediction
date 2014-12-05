@@ -15,9 +15,12 @@ from reg import LogisticRegression
 from math import log
 from random import random
 
+import cPickle as pickle
 import numpy as np
 
 import time
+import uuid
+import os
 
 class AudioFeatureSet(object):
     """
@@ -33,14 +36,19 @@ class AudioFeatureSet(object):
         """
     
         if isinstance(x, AudioBite):
-            self.vec = x.mel_specgram#.flatten() # DEBUG
+            self.vec = x.mel_specgram.flatten() # DEBUG
         elif isinstance(x, np.ndarray):
             self.vec = x
         else:
             raise Exception("Type error!")
 
+        #self.fid = str(uuid.uuid4())
+        #pickle.dump(self.vec, open(os.path.join('afs', self.fid + '.pkl'), 'wb'))
+        #self.vec = None
+
     def get(self):
         return self.vec
+        #return pickle.load(open(os.path.join('afs', self.fid + '.pkl'), 'rb'))
 
 class SongPairModel(object):
     """
@@ -64,8 +72,7 @@ class SongPairModel(object):
         :return Feature set of x :: feature set of y
         """
 
-        #return np.concatenate((x.get(), y.get()))
-        return (x.get()-y.get())**2
+        return np.concatenate((x.get(), y.get()))
 
     def train(self, data):
         """
@@ -75,8 +82,10 @@ class SongPairModel(object):
         A list of (song A, song B, \hat{Pr}(A|B))
         """
         
+        print "Preparing training set..."
         X = [self.join_feature_sets(e[0], e[1]) for e in data]
         Y = [e[2] for e in data]
+        print "Done."
 
         print "Training model on data set with %d instances and %d features..." % (len(X), len(X[0]))
         start_time = time.time()
@@ -183,4 +192,4 @@ def get_song_pairs(data):
     num_songs = len(songs)
     CP = {k:(v/P[k[1]]) for k, v in CP.iteritems()}
 
-    return [(afshash[x],afshash[y],CP[(x,y)]) for x in songs for y in songs if x!=y and CP[(x,y)]>0]
+    return [(afshash[x],afshash[y],CP[(x,y)]) for x in songs for y in songs if x!=y]
