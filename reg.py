@@ -22,11 +22,11 @@ class LogisticRegression(object):
     self.w = None
     self.b = None
 
-  def fit(self, X, Y, lrate=0.001, training_steps=100, coeff_reg=0.1):#, batch_size=1):
+  def fit(self, X, Y, lrate=0.01, training_steps=100, coeff_reg=0.1):#, batch_size=1):
     """
     Batch gradient descent for maximum-likelihood estimation
     """
-    #num_instances = len(X)
+    num_instances = len(X)
     num_features = len(X[0])
 
     x = T.matrix("x")
@@ -46,7 +46,6 @@ class LogisticRegression(object):
       allow_input_downcast=True)
 
     cst = [0] * training_steps
-    X = np.array(X)
     #num_batches = num_instances // batch_size
     for i in xrange(training_steps):
       """

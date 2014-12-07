@@ -35,12 +35,9 @@ class AudioFeatureSet(object):
     :param AudioBite|np.ndarray x: 
     """
   
-    if isinstance(x, AudioBite):
-      self.vec = x.mel_specgram.flatten() # DEBUG
-    elif isinstance(x, np.ndarray):
-      self.vec = x
-    else:
-      raise Exception("Type error!")
+    self.vec = x.mel_specgram.flatten()
+    #self.vec = self.vec[:41000]
+    self.vec = self.vec[:20000]
 
     #self.fid = str(uuid.uuid4())
     #pickle.dump(self.vec, open(os.path.join('afs', self.fid + '.pkl'), 'wb'))
