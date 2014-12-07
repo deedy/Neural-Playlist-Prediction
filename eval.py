@@ -130,11 +130,11 @@ def evaluate_models(data, K=3):
     return ((avg_ll/K), (bench_avg_ll/K), (mse/K), (bench_mse/K))
 
 def main():
-    data_path = sys.argv[1]
-    print "Munging GTZAN..."
-    data = munge_gtzan(data_path)
-    print "Done."
-    #data = generate_synthetic_playsets()
+    #data_path = sys.argv[1]
+    #print "Munging GTZAN..."
+    #data = munge_gtzan(data_path)
+    #print "Done."
+    data = generate_synthetic_playsets()
 
     # BEGIN DEBUG
     """

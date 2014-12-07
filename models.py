@@ -145,6 +145,29 @@ class PlaysetModel(object):
         self.song_pair_model = BenchmarkSongPairModel() if self.benchmark else SongPairModel()
         self.song_pair_model.train(pairs)
 
+    def log_cond_prob(self, x, y):
+        """
+        Compute the conditional probability of observing songs
+        x={x_1,x_2,...,x_n} in a playset given that song y is 
+        already in the playset 
+
+        Assumes conditional independence of all x_i given y,
+        which leads to the following factorization:
+        P(x|y) = \prod_{i=1}^n P(x_i|y)
+
+        :param tuple(set(str), dict[str]=AudioFeatureSet) x: A playset
+        :param tuple(str, AudioFeatureSet) y: A song
+        :rtype float
+        :return Log of the conditional probability P(x|y)
+        """
+
+        ps, afshash = x
+        s, afs = y
+
+        log_cond = sum(self.song_pair_model.log_likelihood(afshash[xi], afs) for xi in ps)
+
+        return log_cond
+
     def avg_log_likelihood(self, x):
         """
         Compute the average log-likelihood of observing a playset

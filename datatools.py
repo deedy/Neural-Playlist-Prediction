@@ -10,7 +10,7 @@ from main import run
 import cPickle as pickle
 import os
 
-DATA_DIR = 'data'
+DATA_DIR = 'dataa'
 GTZAN_MUNGED_FILE = 'data/gtzan_munged.pkl'
 
 def preproc(path):
@@ -66,9 +66,9 @@ def munge_gtzan(path, redo=False):
     else:
         return pickle.load(open(GTZAN_MUNGED_FILE, 'rb'))
 
-def munge_playsets(path_to_playsets, path_to_ab):
+def munge_tpb(path_to_playsets, path_to_ab):
     """
-    Parse preprocessed GTZAN files to model-ready data set
+    Parse preprocessed TPB files to model-ready data set
 
     :param str path_to_playsets: Path to playsets object file
 
