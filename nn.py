@@ -19,6 +19,7 @@ import theano.tensor as T
 
 from logistic_sgd import LogisticRegression
 
+from math import log
 
 class HiddenLayer(object):
   def __init__(self, rng, input, n_in, n_out, W=None, b=None, activation=T.tanh):
@@ -36,6 +37,8 @@ class HiddenLayer(object):
     if activation == theano.tensor.nnet.sigmoid:
       W_values *= 4
 
+    self.activation = activation
+
     W = theano.shared(value=W_values, name='W', borrow=True)
 
     if b is None:
@@ -51,6 +54,11 @@ class HiddenLayer(object):
     else activation(lin_output)
     )
     self.params = [self.W, self.b]
+
+  def run(self, input):
+    output = T.dot(input, self.W) + self.b
+    output = output if self.activation is None else self.activation(output)
+    return output
 
 class MLP(object):
 
@@ -77,12 +85,17 @@ class MLP(object):
 
     self.params = self.hiddenLayer.params + self.logRegressionLayer.params
 
+  def run(self, input):
+    hidden_output = self.hiddenLayer.run(input)
+    logreg_output = self.logRegressionLayer.run(hidden_output)
+    return logreg_output
+
 class MultilayerPerceptron(object):
 
   def __init__(self):
     self.regressor = None
 
-  def fit(self, X, Y, learning_rate=0.00001, L1_reg=0.00, L2_reg=0.0001, n_epochs=100,
+  def fit(self, X, Y, learning_rate=0.00001, L1_reg=0.00, L2_reg=0.0001, n_epochs=1,
        batch_size=1, n_hidden=500):
 
     train_set_x = np.asarray(X)
@@ -132,4 +145,4 @@ class MultilayerPerceptron(object):
     self.regressor = regressor
 
   def predict_log_proba(self, x):
-    raise NotImplementedError
+    return log(self.regressor.run(x).eval())

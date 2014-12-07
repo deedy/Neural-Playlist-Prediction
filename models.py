@@ -7,7 +7,7 @@ regression model
 
 from __future__ import division
 from AudioBite import AudioBite
-#from nn import MLP
+from nn import MultilayerPerceptron
 from sklearn.svm import SVC, SVR
 from sklearn.neighbors import KNeighborsRegressor
 #from sklearn.linear_model import LogisticRegression
@@ -35,7 +35,12 @@ class AudioFeatureSet(object):
     :param AudioBite|np.ndarray x: 
     """
   
-    self.vec = x.mel_specgram.flatten()
+    if isinstance(x, AudioBite):
+      self.vec = x.mel_specgram.flatten()
+    elif isinstance(x, np.ndarray):
+      self.vec = x
+    else:
+      raise TypeError("Invalid input to AudioFeatureSet constructor!")
     #self.vec = self.vec[:41000]
     self.vec = self.vec[:20000]
 
@@ -87,10 +92,10 @@ class SongPairModel(object):
     print "Training model on data set with %d instances and %d features..." % (len(X), len(X[0]))
     start_time = time.time()
     #self.model = KNeighborsRegressor(n_neighbors=3)
-    self.model = LogisticRegression()
+    #self.model = LogisticRegression()
     #self.model = SVR(kernel='rbf', C=1.0)
     #self.model = SVC(kernel='rbf', C=1.0, probability=True)
-    #self.model = MLP()
+    self.model = MultilayerPerceptron()
     self.model.fit(X, Y)
     print "Done in %f seconds." % (time.time() - start_time)
 
