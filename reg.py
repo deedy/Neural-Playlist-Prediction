@@ -42,7 +42,8 @@ class LogisticRegression(object):
     train = theano.function(
       inputs=[x,y],
       outputs=[cost],
-      updates=((w, w - lrate * gw), (b, b - lrate * gb)))
+      updates=((w, w - lrate * gw), (b, b - lrate * gb)),
+      allow_input_downcast=True)
 
     cst = [0] * training_steps
     X = np.array(X)
